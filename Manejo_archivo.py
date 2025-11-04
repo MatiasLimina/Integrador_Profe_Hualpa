@@ -57,54 +57,63 @@ def alta_nuevo_item(categoria, tipo, procesamiento, nuevo_item):
     except Exception as e:
         print(f"ERROR INESPERADO durante el alta: {e}")
 
-def leer_alimentos_recursivo(ruta_actual, lista_global_alimentos):
+def _encontrar_rutas_csv_recursivo(ruta_actual, lista_rutas,nombre_archivo):
     """
-    Recorre recursivamente el sistema de archivos desde una ruta dada,
-    lee todos los archivos 'items.csv' y acumula los datos en una lista.
+    (Función auxiliar) Recorre recursivamente los directorios para encontrar
+    todos los archivos 'items.csv' y acumula sus rutas en una lista.
 
     Args:
-        ruta_actual (str): El directorio a procesar en la llamada actual.
-        lista_global_alimentos (list): La lista que acumula los diccionarios.
-
-    Returns:
-        list: La lista con todos los alimentos encontrados.
+        ruta_actual (str): Directorio desde donde empezar la búsqueda.
+        lista_rutas (list): Lista donde se acumulan las rutas encontradas.
     """
-    # Usamos un try-except por si la ruta inicial no existe.
     try:
-        # 1. Listamos todo lo que hay en la carpeta actual.
         elementos = os.listdir(ruta_actual)
     except FileNotFoundError:
-        print(f"ADVERTENCIA: El directorio base '{ruta_actual}' no fue encontrado.")
-        return [] # Si no existe, devolvemos una lista vacía.
+        # No se imprime advertencia aquí para no saturar la consola si la base no existe.
+        # La función principal se encargará de notificar si no se encuentra nada.
+        return
 
-    # 2. Recorremos cada elemento encontrado.
     for elemento in elementos:
         ruta_completa = os.path.join(ruta_actual, elemento)
-
-        # 3. Decidimos qué hacer: ¿es un archivo o una carpeta?
-
-        # --- PASO RECURSIVO ---
-        # Si es un directorio, nos volvemos a llamar a nosotros mismos
-        # para que la función "baje" a ese nuevo nivel.
         if os.path.isdir(ruta_completa):
-            leer_alimentos_recursivo(ruta_completa, lista_global_alimentos)
+            _encontrar_rutas_csv_recursivo(ruta_completa, lista_rutas)
+        elif os.path.isfile(ruta_completa) and elemento.lower() == nombre_archivo.lower():
+            lista_rutas.append(ruta_completa)
 
-        # --- CASO BASE ---
-        # Si es un archivo y se llama "items.csv", lo leemos.
-        # Esta es la condición de corte de la recursividad.
-        elif os.path.isfile(ruta_completa) and elemento.lower() == "items.csv":
-            try:
-                with open(ruta_completa, 'r', encoding='utf-8', newline='') as f:
-                    lector = csv.DictReader(f)
-                    for fila in lector:
-                        # ¡Mejora! Añadimos la jerarquía al diccionario para tener el contexto.
-                        partes_ruta = ruta_actual.split(os.sep)
-                        if len(partes_ruta) >= 4: # Asumiendo base/cat/tipo/proc
-                            fila['procesamiento'] = partes_ruta[-1]
-                            fila['tipo'] = partes_ruta[-2]
-                            fila['categoria'] = partes_ruta[-3]
-                        lista_global_alimentos.append(fila)
-            except Exception as e:
-                print(f"ADVERTENCIA: Error al leer el archivo {ruta_completa}: {e}")
-    
+def crear_lista_desde_csv(ruta_base, nombre_archivo="items.csv"):
+    """
+    Crea una lista consolidada de alimentos a partir de todos los
+    archivos 'items.csv' encontrados en la estructura de directorios.
+
+    Args:
+        ruta_base (str): El directorio raíz donde buscar (ej: "base_de_datos_alimentos").
+
+
+    Returns:
+        list: Una lista de diccionarios, cada uno representando un alimento.
+              Retorna una lista vacía si no se encuentran datos o el directorio no existe.
+    """
+   rutas_csv = []
+    _encontrar_rutas_csv_recursivo(ruta_base, rutas_csv)
+
+    if not rutas_csv:
+        print(f"ADVERTENCIA: No se encontraron archivos 'items.csv' en '{ruta_base}'.")
+        return []
+
+    lista_global_alimentos = []
+    for ruta_archivo in rutas_csv:
+        try:
+            with open(ruta_archivo, 'r', encoding='utf-8', newline='') as f:
+                lector = csv.DictReader(f)
+                for fila in lector:
+                    # Añadimos la jerarquía al diccionario para tener el contexto.
+                    partes_ruta = os.path.dirname(ruta_archivo).split(os.sep)
+                    if len(partes_ruta) >= 4: # Asumiendo base/cat/tipo/proc
+                        fila['procesamiento'] = partes_ruta[-1]
+                        fila['tipo'] = partes_ruta[-2]
+                        fila['categoria'] = partes_ruta[-3]
+                    lista_global_alimentos.append(fila)
+        except Exception as e:
+            print(f"ADVERTENCIA: Error al leer el archivo {ruta_archivo}: {e}")
+
     return lista_global_alimentos
