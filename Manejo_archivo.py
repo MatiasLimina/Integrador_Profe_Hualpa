@@ -76,7 +76,7 @@ def _encontrar_rutas_csv_recursivo(ruta_actual, lista_rutas,nombre_archivo):
     for elemento in elementos:
         ruta_completa = os.path.join(ruta_actual, elemento)
         if os.path.isdir(ruta_completa):
-            _encontrar_rutas_csv_recursivo(ruta_completa, lista_rutas)
+            _encontrar_rutas_csv_recursivo(ruta_completa, lista_rutas, nombre_archivo)
         elif os.path.isfile(ruta_completa) and elemento.lower() == nombre_archivo.lower():
             lista_rutas.append(ruta_completa)
 
@@ -93,11 +93,11 @@ def crear_lista_desde_csv(ruta_base, nombre_archivo="items.csv"):
         list: Una lista de diccionarios, cada uno representando un alimento.
             Retorna una lista vacía si no se encuentran datos o el directorio no existe.
     """
-rutas_csv = []
-_encontrar_rutas_csv_recursivo(ruta_base, rutas_csv)
+    rutas_csv = []
+    _encontrar_rutas_csv_recursivo(ruta_base, rutas_csv, nombre_archivo)
 
     if not rutas_csv:
-        print(f"ADVERTENCIA: No se encontraron archivos 'items.csv' en '{ruta_base}'.")
+        print(f"ADVERTENCIA: No se encontraron archivos '{nombre_archivo}' en '{ruta_base}'.")
         return []
 
     lista_global_alimentos = []
@@ -106,7 +106,7 @@ _encontrar_rutas_csv_recursivo(ruta_base, rutas_csv)
             with open(ruta_archivo, 'r', encoding='utf-8', newline='') as f:
                 lector = csv.DictReader(f)
                 for fila in lector:
-                    # Añadimos la jerarquía al diccionario para tener el contexto.
+                    # Añadimos la jerarquía al diccionario para tener el contexto completo.
                     partes_ruta = os.path.dirname(ruta_archivo).split(os.sep)
                     if len(partes_ruta) >= 4: # Asumiendo base/cat/tipo/proc
                         fila['procesamiento'] = partes_ruta[-1]
@@ -114,6 +114,6 @@ _encontrar_rutas_csv_recursivo(ruta_base, rutas_csv)
                         fila['categoria'] = partes_ruta[-3]
                     lista_global_alimentos.append(fila)
         except Exception as e:
-            print(f"ADVERTENCIA: Error al leer el archivo {ruta_archivo}: {e}")
+            print(f"ADVERTENCIA: No se pudo leer el archivo {ruta_archivo}. Detalles: {e}")
 
     return lista_global_alimentos
