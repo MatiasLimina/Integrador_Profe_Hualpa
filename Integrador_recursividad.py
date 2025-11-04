@@ -1,3 +1,5 @@
+from Manejo_archivo import *
+from Sub_Menus import *
 def main():
     salir = False
     while not salir:
@@ -12,7 +14,7 @@ def main():
         match opc:
             case "1":
                 #1) Alta de nuevo item
-                continue
+                opcion_1_alta()
             case "2":
                 #2) Mostrar lista global y filtrado
                 continue
