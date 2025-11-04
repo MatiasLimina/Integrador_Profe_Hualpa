@@ -91,10 +91,10 @@ def crear_lista_desde_csv(ruta_base, nombre_archivo="items.csv"):
 
     Returns:
         list: Una lista de diccionarios, cada uno representando un alimento.
-              Retorna una lista vacía si no se encuentran datos o el directorio no existe.
+            Retorna una lista vacía si no se encuentran datos o el directorio no existe.
     """
-   rutas_csv = []
-    _encontrar_rutas_csv_recursivo(ruta_base, rutas_csv)
+rutas_csv = []
+_encontrar_rutas_csv_recursivo(ruta_base, rutas_csv)
 
     if not rutas_csv:
         print(f"ADVERTENCIA: No se encontraron archivos 'items.csv' en '{ruta_base}'.")
