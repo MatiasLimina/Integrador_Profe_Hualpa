@@ -231,3 +231,25 @@ def modificar_item_por_nombre(nombre_item_a_modificar: str) -> bool:
     except (IOError, FileNotFoundError) as e:
         print(f"ERROR CRÍTICO al intentar leer/escribir el archivo para modificar: {e}")
         return False
+
+def mostrar_tabla_alimentos(lista_alimentos: list):
+    """
+    Muestra una lista de alimentos en un formato de tabla bien alineado.
+    """
+    if not lista_alimentos:
+        print("\nNo se encontraron alimentos que coincidan con los criterios.")
+        return
+
+    # Imprimir encabezados
+    print(f"{'Nombre':<30} | {'Calorías (100g)':<20} | {'Categoría':<15} | {'Tipo':<15}")
+
+    # Imprimir filas
+    for item in lista_alimentos:
+        nombre = item.get('nombre', 'N/A')
+        calorias = item.get('calorias_100g', 'N/A')
+        categoria = item.get('categoria', '?')
+        tipo = item.get('tipo', '?')
+        print(f"{nombre:<30} | {calorias:<20} | {categoria:<15} | {tipo:<15}")
+    
+    print("-" * 85)
+    print(f"Total de ítems mostrados: {len(lista_alimentos)}\n")

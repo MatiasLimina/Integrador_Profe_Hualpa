@@ -1,5 +1,6 @@
 from Manejo_archivo import *
 import unicodedata
+from Utilidades import mostrar_tabla_alimentos
 def normalizar_texto_para_ruta(texto: str) -> str:
     """
     Limpia y normaliza un texto para ser usado en nombres de carpetas.
@@ -67,3 +68,285 @@ def opcion_1_alta():
     
     # Llamar a tu función de Fase 2
     alta_nuevo_item(categoria, tipo, procesamiento, nuevo_item)
+
+def opcion_2_mostrar_y_filtrar():
+    """
+    Menú para mostrar y filtrar la lista de alimentos.
+    """
+    lista_completa = crear_lista_desde_csv(RUTA_BASE_DATOS)
+    if not lista_completa:
+        print("La base de datos está vacía. No hay nada que mostrar.")
+        return
+
+    while True:
+        print("\n--- Menú de Visualización y Filtrado ---")
+        print("1) Mostrar todos los alimentos")
+        print("2) Filtrar por jerarquía (Categoría -> Tipo)")
+        print("3) Filtrar por rango de calorías")
+        print("4) Elegir Top por calorías")
+        print("5) Volver al menú principal")
+        opc = input("Elija una opción: ")
+
+        match opc:
+            case "1": # Mostrar todo
+                print("\n--- Lista Completa de Alimentos ---")
+                mostrar_tabla_alimentos(lista_completa)
+
+            case "2": # Filtrado Jerárquico
+                # 1. Elegir Categoría
+                categorias = sorted(list(set(item['categoria'] for item in lista_completa if 'categoria' in item)))
+                print("\n--- Filtrar por Jerarquía: Categorías ---")
+                for i, cat in enumerate(categorias):
+                    print(f"{i + 1}) {cat}")
+                
+                try:
+                    opc_cat_str = input(f"Elija una categoría (1-{len(categorias)}) o 0 para cancelar: ")
+                    if opc_cat_str == '0': continue
+                    opc_cat = int(opc_cat_str) - 1
+
+                    if 0 <= opc_cat < len(categorias):
+                        categoria_elegida = categorias[opc_cat]
+                        # 2. Filtrar por esa categoría y mostrar los Tipos disponibles
+                        items_en_categoria = [item for item in lista_completa if item.get('categoria') == categoria_elegida]
+                        tipos = sorted(list(set(item['tipo'] for item in items_en_categoria if 'tipo' in item)))
+                        
+                        print(f"\n--- Tipos dentro de '{categoria_elegida}' ---")
+                        print("0) Ver todos los alimentos de esta categoría")
+                        for i, tipo in enumerate(tipos):
+                            print(f"{i + 1}) {tipo}")
+                        
+                        opc_tipo_str = input(f"Elija un tipo (1-{len(tipos)}) o 0 para ver todos: ")
+                        opc_tipo = int(opc_tipo_str) - 1
+
+                        if opc_tipo == -1: # Opción 0
+                            mostrar_tabla_alimentos(items_en_categoria)
+                        elif 0 <= opc_tipo < len(tipos):
+                            tipo_elegido = tipos[opc_tipo]
+                            items_en_tipo = [item for item in items_en_categoria if item.get('tipo') == tipo_elegido]
+                            mostrar_tabla_alimentos(items_en_tipo)
+                        else:
+                            print("Opción de tipo inválida.")
+                    else:
+                        print("Opción de categoría inválida.")
+                except (ValueError, IndexError):
+                    print("Entrada no válida. Intente de nuevo.")
+
+            case "3": # Filtrar por Rango de Calorías
+                print("\n--- Filtrar por Rango de Calorías ---")
+                try:
+                    min_cal = float(input("Ingrese calorías mínimas: "))
+                    max_cal = float(input("Ingrese calorías máximas: "))
+                    if min_cal > max_cal:
+                        print("Error: El mínimo no puede ser mayor que el máximo.")
+                        continue
+                    
+                    # Filtra solo los que tienen calorías y están en el rango
+                    filtrados = []
+                    for item in lista_completa:
+                        try:
+                            calorias = float(item.get('calorias_100g', -1))
+                            if min_cal <= calorias <= max_cal:
+                                filtrados.append(item)
+                        except (ValueError, TypeError):
+                            continue # Ignora items con calorías no numéricas
+                    
+                    mostrar_tabla_alimentos(filtrados)
+                except ValueError:
+                    print("Error: Ingrese valores numéricos para las calorías.")
+
+            case "4": # Top por Calorías
+                print("\n--- Top por Calorías ---")
+                try:
+                    n_str = input("¿Cuántos alimentos del top desea ver? (ej: 5): ")
+                    n = int(n_str)
+                    if n <= 0:
+                        print("Debe ingresar un número positivo.")
+                        continue
+                    
+                    # Aquí está la solución a tu preocupación:
+                    # 1. Creamos una lista solo con items que tienen calorías válidas.
+                    items_con_calorias = []
+                    for item in lista_completa:
+                        try:
+                            # Intentamos convertir la caloría a float y la guardamos
+                            item_copy = item.copy()
+                            item_copy['calorias_100g_float'] = float(item.get('calorias_100g'))
+                            items_con_calorias.append(item_copy)
+                        except (ValueError, TypeError, AttributeError):
+                            continue # Ignoramos los que no tienen calorias o no son números
+
+                    # 2. Ordenamos esa lista limpia de mayor a menor
+                    items_ordenados = sorted(items_con_calorias, key=lambda x: x['calorias_100g_float'], reverse=True)
+
+                    # 3. Mostramos los primeros 'n' resultados
+                    mostrar_tabla_alimentos(items_ordenados[:n])
+
+                except ValueError:
+                    print("Error: Ingrese un número entero válido.")
+
+            case "5": # Volver
+                break
+            case _:
+                print("Opción no válida.")
+
+def opcion_5_estadisticas():
+    """
+    Muestra un menú con diferentes estadísticas sobre la base de datos de alimentos.
+    """
+    lista_completa = crear_lista_desde_csv(RUTA_BASE_DATOS)
+    if not lista_completa:
+        print("La base de datos está vacía. No se pueden calcular estadísticas.")
+        return
+
+    # --- Preparación de Datos ---
+    # Crear una lista solo con ítems que tienen calorías válidas para los cálculos.
+    # Esto hace que todas las operaciones sean robustas y seguras.
+    items_con_calorias = []
+    for item in lista_completa:
+        try:
+            item_copy = item.copy()
+            item_copy['calorias_float'] = float(item.get('calorias_100g'))
+            items_con_calorias.append(item_copy)
+        except (ValueError, TypeError, AttributeError):
+            continue # Ignora ítems sin calorías o con valores no numéricos.
+
+    while True:
+        print("\n--- Menú de Estadísticas ---")
+        print("1) Resumen General de la Base de Datos")
+        print("2) Cantidad de Alimentos por Categoría")
+        print("3) Análisis Detallado por Categoría")
+        print("4) Ranking de Calorías Promedio por Categoría")
+        print("5) Top 3 Más/Menos Calóricos por Categoría")
+        print("6) Volver al menú principal")
+        opc = input("Elija una opción: ")
+
+        match opc:
+            case "1": # Resumen General
+                print("\n--- Resumen General ---")
+                print(f"- Cantidad total de alimentos: {len(lista_completa)}")
+                if items_con_calorias:
+                    suma_calorias = sum(item['calorias_float'] for item in items_con_calorias)
+                    promedio_global = suma_calorias / len(items_con_calorias)
+                    max_item = max(items_con_calorias, key=lambda x: x['calorias_float'])
+                    min_item = min(items_con_calorias, key=lambda x: x['calorias_float'])
+                    
+                    print(f"- Promedio de calorías global: {promedio_global:.2f} cal")
+                    print(f"- Alimento con MÁS calorías: {max_item['nombre']} ({max_item['calorias_float']:.1f} cal)")
+                    print(f"- Alimento con MENOS calorías: {min_item['nombre']} ({min_item['calorias_float']:.1f} cal)")
+                else:
+                    print("- No hay datos de calorías para calcular estadísticas.")
+
+            case "2": # Distribución por Categoría
+                print("\n--- Distribución de Alimentos por Categoría ---")
+                from collections import Counter
+                # Counter es una forma muy eficiente de contar elementos
+                conteo_categorias = Counter(item['categoria'] for item in lista_completa if 'categoria' in item)
+                if conteo_categorias:
+                    for categoria, cantidad in conteo_categorias.items():
+                        print(f"- {categoria}: {cantidad} ítems")
+                else:
+                    print("No se encontraron categorías.")
+
+            case "3": # Análisis Detallado por Categoría (Interactivo)
+                print("\n--- Análisis Detallado por Categoría ---")
+                categorias = sorted(list(set(item['categoria'] for item in items_con_calorias if 'categoria' in item)))
+                if not categorias:
+                    print("No hay categorías con datos de calorías para analizar.")
+                    continue
+
+                for i, cat in enumerate(categorias):
+                    print(f"  ID {i}) {cat}")
+                
+                try:
+                    id_cat_str = input(f"Ingrese el ID de la categoría a analizar (0-{len(categorias)-1}): ")
+                    id_cat = int(id_cat_str)
+                    if 0 <= id_cat < len(categorias):
+                        categoria_elegida = categorias[id_cat]
+                        items_categoria = [item for item in items_con_calorias if item.get('categoria') == categoria_elegida]
+                        
+                        if items_categoria:
+                            suma_cal = sum(item['calorias_float'] for item in items_categoria)
+                            promedio_cat = suma_cal / len(items_categoria)
+                            max_item_cat = max(items_categoria, key=lambda x: x['calorias_float'])
+                            min_item_cat = min(items_categoria, key=lambda x: x['calorias_float'])
+                            
+                            print(f"\nEstadísticas para la categoría '{categoria_elegida}':")
+                            print(f"- Promedio de calorías: {promedio_cat:.2f} cal")
+                            print(f"- Alimento MÁS calórico: {max_item_cat['nombre']} ({max_item_cat['calorias_float']:.1f} cal)")
+                            print(f"- Alimento MENOS calórico: {min_item_cat['nombre']} ({min_item_cat['calorias_float']:.1f} cal)")
+                    else:
+                        print("ID de categoría inválido.")
+                except (ValueError, IndexError):
+                    print("Entrada no válida. Debe ingresar un número de ID.")
+
+            case "4": # Ranking de Calorías Promedio por Categoría
+                print("\n--- Ranking de Calorías Promedio por Categoría ---")
+                categorias = sorted(list(set(item['categoria'] for item in items_con_calorias if 'categoria' in item)))
+                promedios_por_categoria = []
+
+                for cat in categorias:
+                    items_categoria = [item for item in items_con_calorias if item.get('categoria') == cat]
+                    if items_categoria:
+                        suma_cal = sum(item['calorias_float'] for item in items_categoria)
+                        promedio = suma_cal / len(items_categoria)
+                        promedios_por_categoria.append({'categoria': cat, 'promedio': promedio})
+                
+                # Ordenar la lista de promedios de mayor a menor
+                ranking = sorted(promedios_por_categoria, key=lambda x: x['promedio'], reverse=True)
+
+                if ranking:
+                    for i, data in enumerate(ranking):
+                        print(f"{i+1}. {data['categoria']} ({data['promedio']:.1f} cal en promedio)")
+                else:
+                    print("No hay suficientes datos para generar un ranking.")
+
+            case "5": # Top 3 Más/Menos Calóricos por Categoría (Interactivo)
+                print("\n--- Top 3 Más/Menos Calóricos por Categoría ---")
+                categorias = sorted(list(set(item['categoria'] for item in items_con_calorias if 'categoria' in item)))
+                if not categorias:
+                    print("No hay categorías con datos de calorías para analizar.")
+                    continue
+
+                for i, cat in enumerate(categorias):
+                    print(f"  ID {i}) {cat}")
+                
+                try:
+                    id_cat_str = input(f"Ingrese el ID de la categoría a analizar (0-{len(categorias)-1}): ")
+                    id_cat = int(id_cat_str)
+                    if 0 <= id_cat < len(categorias):
+                        categoria_elegida = categorias[id_cat]
+                        items_categoria = [item for item in items_con_calorias if item.get('categoria') == categoria_elegida]
+                        
+                        if len(items_categoria) < 1:
+                            print(f"No hay suficientes datos en la categoría '{categoria_elegida}'.")
+                            continue
+
+                        # Ordenar la lista de ítems de la categoría por calorías
+                        items_ordenados = sorted(items_categoria, key=lambda x: x['calorias_float'])
+                        
+                        print(f"\n--- Categoría: {categoria_elegida} ---")
+                        
+                        # Top 3 Más Calóricos (los últimos 3 de la lista ordenada)
+                        print("  Top 3 Más Calóricos:")
+                        top_mas = items_ordenados[-3:] # Tomamos los últimos 3
+                        top_mas.reverse() # Los invertimos para que el más alto quede primero
+                        if not top_mas: print("    No hay datos.")
+                        for i, item in enumerate(top_mas):
+                            print(f"    {i+1}. {item['nombre']} ({item['calorias_float']:.1f} cal)")
+
+                        # Top 3 Menos Calóricos (los primeros 3 de la lista ordenada)
+                        print("  Top 3 Menos Calóricos:")
+                        top_menos = items_ordenados[:3] # Tomamos los primeros 3
+                        if not top_menos: print("    No hay datos.")
+                        for i, item in enumerate(top_menos):
+                            print(f"    {i+1}. {item['nombre']} ({item['calorias_float']:.1f} cal)")
+
+                    else:
+                        print("ID de categoría inválido.")
+                except (ValueError, IndexError):
+                    print("Entrada no válida. Debe ingresar un número de ID.")
+
+            case "6": # Volver
+                break
+            case _:
+                print("Opción no válida.")
