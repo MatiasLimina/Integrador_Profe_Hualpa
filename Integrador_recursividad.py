@@ -23,7 +23,7 @@ def main():
                 #3) Modificacion de un item
                 continue
             case "4":
-                #4) Eliminacion de un item
+                #4) Eliminacion de un item/Busqueda multiples coincidencias
                 nombre = input("Ingrese el nombre exacto del ítem que desea eliminar: ")
                 if nombre:
                     eliminar_item_por_nombre(nombre) # Llamada a la nueva función
