@@ -18,7 +18,7 @@ def main():
                 opcion_1_alta()
             case "2":
                 #2) Mostrar lista global y filtrado
-                continue
+                opcion_2_mostrar_y_filtrar()
             case "3":
                 #3) Modificacion de un item
                 continue
@@ -31,7 +31,7 @@ def main():
                     print("No ingresó un nombre. Volviendo al menú.")
             case "5":
                 #5) Estadisticas y ordenamiento
-                continue
+                opcion_5_estadisticas()
             case "6":
                 print("Gracias vuelva pronto!")
                 salir = True
