@@ -119,3 +119,29 @@ def crear_lista_desde_csv(ruta_base, nombre_archivo="items.csv"):
             print(f"ADVERTENCIA: No se pudo leer el archivo {ruta_archivo}. Detalles: {e}")
 
     return lista_global_alimentos
+
+def _sobrescribir_csv(ruta_archivo: str, encabezados: list, filas: list) -> bool:
+    """
+    (Función auxiliar) Sobrescribe de forma segura un archivo CSV con una nueva lista de filas.
+
+    Args:
+        ruta_archivo (str): La ruta completa al archivo CSV que se va a sobrescribir.
+        encabezados (list): Una lista de strings con los nombres de las columnas.
+        filas (list): Una lista de diccionarios, donde cada diccionario es una fila.
+
+    Returns:
+        bool: True si la escritura fue exitosa, False en caso de error.
+    """
+    try:
+        with open(ruta_archivo, 'w', encoding='utf-8', newline='') as f:
+            escritor = csv.DictWriter(f, fieldnames=encabezados)
+            escritor.writeheader()
+            escritor.writerows(filas)
+        return True
+    except (IOError, FileNotFoundError) as e:
+        print(f"ERROR CRÍTICO al intentar reescribir el archivo: {e}")
+        return False
+    except Exception as e:
+        print(f"ERROR INESPERADO durante la reescritura del archivo: {e}")
+        return False
+
