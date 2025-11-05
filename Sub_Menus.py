@@ -1,6 +1,7 @@
 from Manejo_archivo import *
 import unicodedata
-from Utilidades import mostrar_tabla_alimentos
+from Utilidades import mostrar_tabla_alimentos, imprimir_menu
+
 def normalizar_texto_para_ruta(texto: str) -> str:
     """
     Limpia y normaliza un texto para ser usado en nombres de carpetas.
@@ -24,7 +25,9 @@ def normalizar_texto_para_ruta(texto: str) -> str:
     return texto_sin_acentos
 
 def opcion_1_alta():
-    print("--- Alta de Nuevo Alimento ---")
+    print("\n====================================")
+    print("       Alta de Nuevo Alimento       ")
+    print("====================================")
     
     # Pedir jerarquía
     categoria_input = input("Ingrese Categoría (ej: Frutas): ")
@@ -79,13 +82,14 @@ def opcion_2_mostrar_y_filtrar():
         return
 
     while True:
-        print("\n--- Menú de Visualización y Filtrado ---")
-        print("1) Mostrar todos los alimentos")
-        print("2) Filtrar por jerarquía (Categoría -> Tipo)")
-        print("3) Filtrar por rango de calorías")
-        print("4) Elegir Top por calorías")
-        print("5) Volver al menú principal")
-        opc = input("Elija una opción: ")
+        opciones_menu = [
+            "Mostrar todos los alimentos",
+            "Filtrar por jerarquía (Categoría -> Tipo)",
+            "Filtrar por rango de calorías",
+            "Elegir Top por calorías"
+        ]
+        imprimir_menu("Menú de Visualización y Filtrado", opciones_menu, "Volver al menú principal")
+        opc = input("Elija una opción: ").strip()
 
         match opc:
             case "1": # Mostrar todo
@@ -95,12 +99,15 @@ def opcion_2_mostrar_y_filtrar():
             case "2": # Filtrado Jerárquico
                 # 1. Elegir Categoría
                 categorias = sorted(list(set(item['categoria'] for item in lista_completa if 'categoria' in item)))
-                print("\n--- Filtrar por Jerarquía: Categorías ---")
+                print("\n--- Filtrar por Jerarquía: Elija una Categoría ---")
                 for i, cat in enumerate(categorias):
                     print(f"{i + 1}) {cat}")
+                print("-------------------------------------------------")
+                print("0) Cancelar")
+                print("-------------------------------------------------")
                 
                 try:
-                    opc_cat_str = input(f"Elija una categoría (1-{len(categorias)}) o 0 para cancelar: ")
+                    opc_cat_str = input(f"Elija una categoría (1-{len(categorias)}): ")
                     if opc_cat_str == '0': continue
                     opc_cat = int(opc_cat_str) - 1
 
@@ -110,12 +117,14 @@ def opcion_2_mostrar_y_filtrar():
                         items_en_categoria = [item for item in lista_completa if item.get('categoria') == categoria_elegida]
                         tipos = sorted(list(set(item['tipo'] for item in items_en_categoria if 'tipo' in item)))
                         
-                        print(f"\n--- Tipos dentro de '{categoria_elegida}' ---")
-                        print("0) Ver todos los alimentos de esta categoría")
+                        print(f"\n--- Tipos en '{categoria_elegida}': Elija un Tipo ---")
                         for i, tipo in enumerate(tipos):
                             print(f"{i + 1}) {tipo}")
+                        print("-------------------------------------------------")
+                        print("0) Ver todos los alimentos de esta categoría")
+                        print("-------------------------------------------------")
                         
-                        opc_tipo_str = input(f"Elija un tipo (1-{len(tipos)}) o 0 para ver todos: ")
+                        opc_tipo_str = input(f"Elija un tipo (1-{len(tipos)}): ")
                         opc_tipo = int(opc_tipo_str) - 1
 
                         if opc_tipo == -1: # Opción 0
@@ -132,7 +141,9 @@ def opcion_2_mostrar_y_filtrar():
                     print("Entrada no válida. Intente de nuevo.")
 
             case "3": # Filtrar por Rango de Calorías
-                print("\n--- Filtrar por Rango de Calorías ---")
+                print("\n====================================")
+                print("    Filtrar por Rango de Calorías   ")
+                print("====================================")
                 try:
                     min_cal = float(input("Ingrese calorías mínimas: "))
                     max_cal = float(input("Ingrese calorías máximas: "))
@@ -155,7 +166,9 @@ def opcion_2_mostrar_y_filtrar():
                     print("Error: Ingrese valores numéricos para las calorías.")
 
             case "4": # Top por Calorías
-                print("\n--- Top por Calorías ---")
+                print("\n====================================")
+                print("         Top por Calorías           ")
+                print("====================================")
                 try:
                     n_str = input("¿Cuántos alimentos del top desea ver? (ej: 5): ")
                     n = int(n_str)
@@ -184,7 +197,7 @@ def opcion_2_mostrar_y_filtrar():
                 except ValueError:
                     print("Error: Ingrese un número entero válido.")
 
-            case "5": # Volver
+            case "0": # Volver
                 break
             case _:
                 print("Opción no válida.")
@@ -211,14 +224,15 @@ def opcion_5_estadisticas():
             continue # Ignora ítems sin calorías o con valores no numéricos.
 
     while True:
-        print("\n--- Menú de Estadísticas ---")
-        print("1) Resumen General de la Base de Datos")
-        print("2) Cantidad de Alimentos por Categoría")
-        print("3) Análisis Detallado por Categoría")
-        print("4) Ranking de Calorías Promedio por Categoría")
-        print("5) Top 3 Más/Menos Calóricos por Categoría")
-        print("6) Volver al menú principal")
-        opc = input("Elija una opción: ")
+        opciones_menu = [
+            "Resumen General de la Base de Datos",
+            "Cantidad de Alimentos por Categoría",
+            "Análisis Detallado por Categoría",
+            "Ranking de Calorías Promedio por Categoría",
+            "Top 3 Más/Menos Calóricos por Categoría"
+        ]
+        imprimir_menu("Menú de Estadísticas", opciones_menu, "Volver al menú principal")
+        opc = input("Elija una opción: ").strip()
 
         match opc:
             case "1": # Resumen General
@@ -346,7 +360,7 @@ def opcion_5_estadisticas():
                 except (ValueError, IndexError):
                     print("Entrada no válida. Debe ingresar un número de ID.")
 
-            case "6": # Volver
+            case "0": # Volver
                 break
             case _:
                 print("Opción no válida.")

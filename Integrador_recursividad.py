@@ -1,17 +1,20 @@
 from Manejo_archivo import *
 from Sub_Menus import *
 from Utilidades import *
+
 def main():
     salir = False
     while not salir:
-        print("--- MENU ---")
-        print("1) Alta de nuevo item")
-        print("2) Mostrar lista global y filtrado")
-        print("3) Modificacion de un item")
-        print("4) Eliminacion de un item")
-        print("5) Estadisticas y ordenamiento")
-        print("6) Salir")
-        opc = input("Elija una opcion ")
+        opciones_principales = [
+            "Alta de Nuevo Ítem",
+            "Mostrar y Filtrar Alimentos",
+            "Modificación de un Ítem",
+            "Eliminación de un Ítem",
+            "Estadísticas y Ordenamiento"
+        ]
+        print("\n=========================================")
+        imprimir_menu("GESTOR DE BASE DE DATOS DE ALIMENTOS", opciones_principales, "Salir")
+        opc = input("Elija una opción: ").strip()
         match opc:
             case "1":
                 #1) Alta de nuevo item
@@ -36,8 +39,11 @@ def main():
             case "5":
                 #5) Estadisticas y ordenamiento
                 opcion_5_estadisticas()
-            case "6":
-                print("Gracias vuelva pronto!")
+            case "0":
+                print("¡Gracias, vuelva pronto!")
                 salir = True
+            case _:
+                print("Opción no válida. Por favor, intente de nuevo.")
 
-main()
+if __name__ == "__main__":
+    main()
