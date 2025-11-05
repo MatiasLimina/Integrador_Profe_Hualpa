@@ -1,6 +1,7 @@
 from Manejo_archivo import *
 import csv
 import os
+
 def eliminar_item_por_nombre(nombre_item_a_eliminar: str) -> bool:
     """
     Busca ítems por su nombre. Si hay múltiples coincidencias, muestra un menú
@@ -27,15 +28,20 @@ def eliminar_item_por_nombre(nombre_item_a_eliminar: str) -> bool:
 
     # 2. Lógica del menú interactivo si hay más de una coincidencia.
     if len(items_encontrados) > 1:
-        print(f"Se encontraron múltiples ítems con el nombre '{nombre_item_a_eliminar}'. Por favor, elija cuál desea eliminar:")
+        print("\n--- Múltiples Coincidencias Encontradas ---")
+        print(f"Se encontraron varios ítems con el nombre '{nombre_item_a_eliminar}'.")
+        print("Por favor, elija cuál desea eliminar:")
         for i, item in enumerate(items_encontrados):
             # Mostramos la "ruta" completa para que el usuario pueda diferenciarlos.
             ruta_display = f"{item.get('categoria', '?')} > {item.get('tipo', '?')} > {item.get('procesamiento', '?')}"
             print(f"  {i + 1}) {item.get('nombre')} (Calorías: {item.get('calorias_100g', 'N/A')}) en [{ruta_display}]")
+        print("----------------------------------------------------")
+        print("  0) Cancelar")
+        print("----------------------------------------------------")
         
         while True:
             try:
-                opcion_str = input(f"Ingrese el número del ítem a eliminar (1-{len(items_encontrados)}) o 0 para cancelar: ")
+                opcion_str = input(f"Ingrese el número del ítem (1-{len(items_encontrados)}): ")
                 opcion = int(opcion_str)
                 if 0 < opcion <= len(items_encontrados):
                     item_a_eliminar = items_encontrados[opcion - 1]
@@ -122,14 +128,19 @@ def modificar_item_por_nombre(nombre_item_a_modificar: str) -> bool:
     item_a_modificar = None
 
     if len(items_encontrados) > 1:
-        print(f"Se encontraron múltiples ítems con el nombre '{nombre_item_a_modificar}'. Por favor, elija cuál desea modificar:")
+        print("\n--- Múltiples Coincidencias Encontradas ---")
+        print(f"Se encontraron varios ítems con el nombre '{nombre_item_a_modificar}'.")
+        print("Por favor, elija cuál desea modificar:")
         for i, item in enumerate(items_encontrados):
             ruta_display = f"{item.get('categoria', '?')} > {item.get('tipo', '?')} > {item.get('procesamiento', '?')}"
             print(f"  {i + 1}) {item.get('nombre')} (Calorías: {item.get('calorias_100g', 'N/A')}) en [{ruta_display}]")
+        print("----------------------------------------------------")
+        print("  0) Cancelar")
+        print("----------------------------------------------------")
         
         while True:
             try:
-                opcion_str = input(f"Ingrese el número del ítem a modificar (1-{len(items_encontrados)}) o 0 para cancelar: ")
+                opcion_str = input(f"Ingrese el número del ítem (1-{len(items_encontrados)}): ")
                 opcion = int(opcion_str)
                 if 0 < opcion <= len(items_encontrados):
                     item_a_modificar = items_encontrados[opcion - 1]
@@ -223,7 +234,7 @@ def modificar_item_por_nombre(nombre_item_a_modificar: str) -> bool:
                     filas_actualizadas.append(fila) # Mantenemos la fila como estaba
         
         if sobrescribir_csv(ruta_archivo_especifico, encabezados, filas_actualizadas):
-            print(f"¡Éxito! Ítem '{item_a_modificar['nombre']}' modificado a '{nuevo_nombre}'.")
+            print(f"¡Éxito! Ítem modificado.")
             return True
         else:
             print(f"Fallo al sobrescribir el archivo para modificar el ítem.")
@@ -253,3 +264,23 @@ def mostrar_tabla_alimentos(lista_alimentos: list):
     
     print("-" * 85)
     print(f"Total de ítems mostrados: {len(lista_alimentos)}\n")
+
+def imprimir_menu(titulo: str, opciones: list, opcion_salida: str = None):
+    """
+    Imprime un menú con un formato estandarizado.
+
+    Args:
+        titulo (str): El título que se mostrará en la parte superior del menú.
+        opciones (list): Una lista de strings, cada uno es una opción del menú.
+        opcion_salida (str, optional): El texto para la opción de salir o volver.
+                                       Si se proporciona, se añade como opción '0'.
+    """
+    print(f"\n--- {titulo} ---")
+    for i, opcion in enumerate(opciones):
+        print(f"{i + 1}) {opcion}")
+    
+    if opcion_salida:
+        print("-----------------------------------------")
+        print(f"0) {opcion_salida}")
+    
+    print("-----------------------------------------")

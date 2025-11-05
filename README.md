@@ -5,7 +5,6 @@ Este proyecto es una aplicación de consola desarrollada en Python para administ
 
 El programa es robusto y generalizado: se adapta dinámicamente a nuevas categorías, tipos o archivos de datos que se añadan a la estructura de carpetas, sin necesidad de modificar el código fuente.
 
-
 # ---Funcionalidades Clave--- #
 El programa ofrece un menú interactivo con las siguientes opciones:
 
@@ -39,7 +38,6 @@ Análisis por Categoría: Estadísticas detalladas (promedio, máx, mín) para u
 Ranking de Calorías: Ordena las categorías de la más a la menos calórica en promedio.
 Top 3 por Categoría: Muestra los 3 alimentos más y menos calóricos para una categoría seleccionada.
 
-
 # ---Estructura del Proyecto--- #
 El código está organizado en módulos para una mejor legibilidad y mantenimiento:
 
@@ -56,8 +54,8 @@ database/
     └── tipo/
         └── procesamiento/
             └── items.csv
-Ejemplo:
 
+Ejemplo:
 plaintext
 database/
 └── carnes/
