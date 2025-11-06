@@ -1,5 +1,9 @@
 # =========== Proyecto Manejo de Archivo y Recursividad =========== #
 
+# --- LINKS VIDEO EXPLICATIVO Y REPOSITORIO GITHUB--- #
+https://drive.google.com/drive/folders/1zpQrGK4vhJSWo3GMdIoBj0EKXePJSSAl?usp=sharing
+https://github.com/MatiasLimina/Parcial2_Profe_Hualpa/tree/main
+
 # ---Gestor de Base de Datos de Alimentos--- #
 Este proyecto es una aplicación de consola desarrollada en Python para administrar una base de datos de alimentos. Su principal característica es el uso de una estructura de directorios (categoria/tipo/procesamiento) como sistema de base de datos, lo que permite una organización jerárquica y flexible de la información.
 
